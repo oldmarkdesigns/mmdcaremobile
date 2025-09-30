@@ -5,12 +5,24 @@ export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
+if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
-  if (req.method === 'POST') {
+// In-memory completion flags (best-effort within single instance)
+if (!global.__mmd_completed) {
+  global.__mmd_completed = new Set();
+}
+
+if (req.method === 'GET') {
+  const { transferId } = req.query;
+  if (!transferId) return res.status(400).json({ error: 'No transfer ID provided' });
+  const closed = global.__mmd_completed.has(transferId);
+  return res.status(200).json({ status: closed ? 'closed' : 'open' });
+}
+
+if (req.method === 'POST') {
     const { transferId } = req.query;
     
     if (!transferId) {
@@ -19,6 +31,9 @@ export default function handler(req, res) {
 
     // Log completion for debugging
     console.log('Transfer completed:', transferId);
+
+  // Mark as completed in-memory
+  try { global.__mmd_completed.add(transferId); } catch {}
 
     // Notify any SSE subscribers for this transfer
     try {

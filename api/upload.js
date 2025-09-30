@@ -83,7 +83,7 @@ export default async function handler(req, res) {
         async function uploadOne(file) {
           const fd = new FormData();
           fd.append('file', file, file.name);
-          const resp = await fetch('/api/upload/' + transferId, { method:'POST', body: fd });
+          const resp = await fetch('/api/upload?transferId=' + transferId, { method:'POST', body: fd });
           if (!resp.ok) throw new Error(await resp.text());
         }
         
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
             for (const file of files) {
               await uploadOne(file);
             }
-            await fetch('/api/complete/' + transferId, { method:'POST' });
+            await fetch('/api/complete?transferId=' + transferId, { method:'POST' });
             msg.textContent = "Upload completed! You can close this page.";
             msg.className = "status success";
           } catch (e) {
