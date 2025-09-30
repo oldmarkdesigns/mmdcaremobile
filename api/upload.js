@@ -51,7 +51,7 @@ export default async function handler(req, res) {
         body{font-family:system-ui;padding:16px;background:#f9fafb;min-height:100vh}
         .card{border:1px solid #e5e7eb;border-radius:16px;padding:24px;background:white;max-width:400px;margin:2rem auto}
         .header{text-align:center;margin-bottom:24px}
-        .logo{width:40px;height:40px;margin-bottom:12px}
+        .logo{width:40px;height:40px;margin-bottom:12px;filter:brightness(0) saturate(100%) invert(8%) sepia(8%) saturate(2000%) hue-rotate(200deg) brightness(0.9) contrast(1.1)}
         h1{font-size:24px;font-weight:600;color:#1f2937;margin:0}
         .subtitle{color:#6b7280;font-size:14px;margin-top:8px}
         button{padding:12px 24px;border-radius:12px;border:none;background:#1d4ed8;color:white;font-weight:500;cursor:pointer;width:100%;margin-top:16px}
