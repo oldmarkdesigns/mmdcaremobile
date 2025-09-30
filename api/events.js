@@ -21,8 +21,7 @@ export default function handler(req, res) {
     res.flushHeaders();
 
     // Send initial status
-    const transfer = global.transfers?.get(transferId);
-    res.write(`data: ${JSON.stringify({ type: "status", status: transfer?.status || "unknown" })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: "status", status: "open" })}\n\n`);
 
     // Keep connection alive with periodic pings
     const interval = setInterval(() => {

@@ -15,16 +15,8 @@ export default function handler(req, res) {
     const transferId = Math.random().toString(36).substring(2, 15) + 
                       Math.random().toString(36).substring(2, 15);
     
-    // Store transfer in memory (in production, use a database)
-    if (!global.transfers) {
-      global.transfers = new Map();
-    }
-    
-    global.transfers.set(transferId, {
-      status: 'open',
-      files: [],
-      createdAt: Date.now()
-    });
+    // Log transfer creation for debugging
+    console.log('Transfer created:', transferId);
 
     res.status(201).json({
       transferId: transferId,

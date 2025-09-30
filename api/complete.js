@@ -13,13 +13,12 @@ export default function handler(req, res) {
   if (req.method === 'POST') {
     const { transferId } = req.query;
     
-    if (!global.transfers || !global.transfers.has(transferId)) {
-      return res.status(404).json({ error: 'Transfer not found' });
+    if (!transferId) {
+      return res.status(400).json({ error: 'No transfer ID provided' });
     }
 
-    const transfer = global.transfers.get(transferId);
-    transfer.status = 'closed';
-    global.transfers.set(transferId, transfer);
+    // Log completion for debugging
+    console.log('Transfer completed:', transferId);
 
     res.status(204).end();
   } else {
