@@ -20,6 +20,21 @@ export default function handler(req, res) {
     // Log completion for debugging
     console.log('Transfer completed:', transferId);
 
+    // Notify any SSE subscribers for this transfer
+    try {
+      const set = global.__mmd_sse_clients && global.__mmd_sse_clients.get(transferId);
+      if (set) {
+        for (const r of set) {
+          try {
+            r.write(`data: ${JSON.stringify({ type: 'closed', transferId })}\n\n`);
+            r.write(`data: ${JSON.stringify({ type: 'status', status: 'closed' })}\n\n`);
+          } catch (e) {
+            // ignore broken connections
+          }
+        }
+      }
+    } catch {}
+
     res.status(204).end();
   } else {
     res.status(405).json({ error: 'Method not allowed' });

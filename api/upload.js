@@ -154,6 +154,20 @@ export default async function handler(req, res) {
       // Log the upload for debugging
       console.log('File uploaded:', meta);
 
+      // Push SSE event to any subscribers on desktop
+      try {
+        const set = global.__mmd_sse_clients && global.__mmd_sse_clients.get(transferId);
+        if (set) {
+          for (const r of set) {
+            try {
+              r.write(`data: ${JSON.stringify({ type: 'file', file: meta })}\n\n`);
+            } catch (e) {
+              // ignore broken connections
+            }
+          }
+        }
+      } catch {}
+
       res.status(204).end();
     } catch (error) {
       console.error('Upload error:', error);

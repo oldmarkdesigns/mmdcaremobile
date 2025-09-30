@@ -1,4 +1,9 @@
 // Vercel API route for Server-Sent Events
+// Simple in-memory SSE registry (best-effort within a single serverless instance)
+if (!global.__mmd_sse_clients) {
+  global.__mmd_sse_clients = new Map(); // transferId -> Set(res)
+}
+
 export default function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,6 +25,11 @@ export default function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.flushHeaders();
 
+    // Register client
+    const set = global.__mmd_sse_clients.get(transferId) || new Set();
+    set.add(res);
+    global.__mmd_sse_clients.set(transferId, set);
+
     // Send initial status
     res.write(`data: ${JSON.stringify({ type: "status", status: "open" })}\n\n`);
 
@@ -35,6 +45,11 @@ export default function handler(req, res) {
     // Clean up on disconnect
     req.on('close', () => {
       clearInterval(interval);
+      const s = global.__mmd_sse_clients.get(transferId);
+      if (s) {
+        s.delete(res);
+        if (s.size === 0) global.__mmd_sse_clients.delete(transferId);
+      }
     });
 
     // Note: In a real implementation, you'd want to use a more sophisticated
