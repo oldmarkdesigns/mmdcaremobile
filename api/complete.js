@@ -35,20 +35,32 @@ if (req.method === 'POST') {
   // Mark as completed in-memory
   try { global.__mmd_completed.add(transferId); } catch {}
 
-    // Notify any SSE subscribers for this transfer
-    try {
-      const set = global.__mmd_sse_clients && global.__mmd_sse_clients.get(transferId);
-      if (set) {
-        for (const r of set) {
-          try {
-            r.write(`data: ${JSON.stringify({ type: 'closed', transferId })}\n\n`);
-            r.write(`data: ${JSON.stringify({ type: 'status', status: 'closed' })}\n\n`);
-          } catch (e) {
-            // ignore broken connections
-          }
-        }
+  // Update shared storage for cross-app communication
+  try {
+    const res = await fetch('https://api.jsonbin.io/v3/b/65c8a4b8dc74654018a8b8b4', {
+      method: 'GET',
+      headers: {
+        'X-Master-Key': '$2a$10$8K1p/a0dL1pK1p/a0dL1pK1p/a0dL1pK1p/a0dL1pK1p/a0dL1pK1p/a0dL1pK'
       }
-    } catch {}
+    });
+    
+    if (res.ok) {
+      const data = await res.json();
+      const transfers = data.record || {};
+      transfers[transferId] = 'completed';
+      
+      await fetch('https://api.jsonbin.io/v3/b/65c8a4b8dc74654018a8b8b4', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': '$2a$10$8K1p/a0dL1pK1p/a0dL1pK1p/a0dL1pK1p/a0dL1pK1p/a0dL1pK1p/a0dL1pK'
+        },
+        body: JSON.stringify(transfers)
+      });
+    }
+  } catch (e) {
+    console.warn('Failed to update shared storage:', e);
+  }
 
     res.status(204).end();
   } else {
