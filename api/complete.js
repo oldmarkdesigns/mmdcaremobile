@@ -14,40 +14,74 @@ if (req.method === 'OPTIONS') {
 
 if (req.method === 'GET') {
   const { transferId } = req.query;
-  if (!transferId) return res.status(400).json({ error: 'No transfer ID provided' });
   
-  // Load transfers from persistent storage
-  const transfers = loadTransfers();
-  const transfer = transfers[transferId];
-  const closed = transfer && transfer.status === 'closed';
+  console.log('=== COMPLETION GET REQUEST ===');
+  console.log('Transfer ID:', transferId);
   
-  return res.status(200).json({ status: closed ? 'closed' : 'open' });
+  if (!transferId) {
+    console.log('No transfer ID provided for GET');
+    return res.status(400).json({ error: 'No transfer ID provided' });
+  }
+  
+  try {
+    // Load transfers from persistent storage
+    const transfers = loadTransfers();
+    console.log('Loaded transfers for GET:', Object.keys(transfers));
+    
+    const transfer = transfers[transferId];
+    console.log('Found transfer for GET:', transfer);
+    
+    const closed = transfer && transfer.status === 'closed';
+    const status = closed ? 'closed' : 'open';
+    
+    console.log('Returning status:', status);
+    return res.status(200).json({ status });
+  } catch (error) {
+    console.error('GET completion error:', error);
+    return res.status(500).json({ error: 'GET failed', message: error.message });
+  }
 }
 
 if (req.method === 'POST') {
     const { transferId } = req.query;
     
+    console.log('=== COMPLETION POST REQUEST ===');
+    console.log('Transfer ID:', transferId);
+    console.log('Request headers:', req.headers);
+    
     if (!transferId) {
+      console.log('No transfer ID provided for completion');
       return res.status(400).json({ error: 'No transfer ID provided' });
     }
 
     // Log completion for debugging
     console.log('Transfer completed:', transferId);
 
-    // Load transfers from persistent storage
-    const transfers = loadTransfers();
-    const transfer = transfers[transferId];
-    
-    if (transfer) {
-      transfer.status = 'closed';
-      transfers[transferId] = transfer;
-      saveTransfers(transfers);
-      console.log('Updated transfer status to closed for:', transferId);
-    } else {
-      console.log('Transfer not found for completion:', transferId);
-    }
+    try {
+      // Load transfers from persistent storage
+      const transfers = loadTransfers();
+      console.log('Loaded transfers for completion:', Object.keys(transfers));
+      
+      const transfer = transfers[transferId];
+      console.log('Found transfer for completion:', transfer);
+      
+      if (transfer) {
+        transfer.status = 'closed';
+        transfers[transferId] = transfer;
+        saveTransfers(transfers);
+        console.log('Updated transfer status to closed for:', transferId);
+        console.log('Final transfer object:', transfer);
+      } else {
+        console.log('Transfer not found for completion:', transferId);
+        console.log('Available transfers:', Object.keys(transfers));
+      }
 
-    res.status(204).end();
+      console.log('Sending 204 response for completion');
+      res.status(204).end();
+    } catch (error) {
+      console.error('Completion error:', error);
+      res.status(500).json({ error: 'Completion failed', message: error.message });
+    }
   } else {
     res.status(405).json({ error: 'Method not allowed' });
   }
