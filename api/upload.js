@@ -121,24 +121,39 @@ export default async function handler(req, res) {
     // Handle file upload
     const { transferId } = req.query;
     
+    console.log('=== UPLOAD POST REQUEST ===');
+    console.log('Transfer ID:', transferId);
+    console.log('Request headers:', req.headers);
+    
     // For now, accept any transfer ID to allow testing
     // In production, you'd want to validate against a database
     if (!transferId) {
+      console.log('No transfer ID provided');
       return res.status(400).json({ error: 'No transfer ID provided' });
     }
 
     try {
+      console.log('Parsing form data...');
       const form = formidable({
         maxFileSize: 100 * 1024 * 1024, // 100MB
         filter: ({ mimetype }) => {
-          return ['application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(mimetype);
+          console.log('File mimetype:', mimetype);
+          const allowed = ['application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+          const isAllowed = allowed.includes(mimetype);
+          console.log('File allowed:', isAllowed);
+          return isAllowed;
         }
       });
 
       const [fields, files] = await form.parse(req);
+      console.log('Parsed fields:', fields);
+      console.log('Parsed files:', files);
+      
       const file = files.file?.[0];
+      console.log('Selected file:', file);
 
       if (!file) {
+        console.log('No file found in request');
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
@@ -170,26 +185,35 @@ export default async function handler(req, res) {
       global.__mmd_transfers.set(transferId, transfer);
       
       // Log the upload for debugging
-      console.log('File uploaded:', meta);
+      console.log('File uploaded successfully:', meta);
       console.log('Transfer now has', transfer.files.length, 'files');
+      console.log('Updated transfer object:', transfer);
+      console.log('Global state after upload:', Array.from(global.__mmd_transfers.keys()));
 
       // Push SSE event to any subscribers on desktop
       try {
         const set = global.__mmd_sse_clients && global.__mmd_sse_clients.get(transferId);
         if (set) {
+          console.log('Sending SSE event to', set.size, 'clients');
           for (const r of set) {
             try {
               r.write(`data: ${JSON.stringify({ type: 'file', file: meta })}\n\n`);
             } catch (e) {
-              // ignore broken connections
+              console.log('SSE client error:', e.message);
             }
           }
+        } else {
+          console.log('No SSE clients found for transfer ID:', transferId);
         }
-      } catch {}
+      } catch (e) {
+        console.log('SSE error:', e.message);
+      }
 
+      console.log('Upload completed successfully, sending 204 response');
       res.status(204).end();
     } catch (error) {
       console.error('Upload error:', error);
+      console.error('Error stack:', error.stack);
       res.status(500).json({ error: 'Upload failed' });
     }
   }
