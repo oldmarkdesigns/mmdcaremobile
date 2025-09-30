@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "functions": {
+    "api/transfers.js": {
+      "maxDuration": 10
+    },
+    "api/upload.js": {
+      "maxDuration": 30
+    },
+    "api/complete.js": {
+      "maxDuration": 10
+    },
+    "api/events.js": {
+      "maxDuration": 60
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

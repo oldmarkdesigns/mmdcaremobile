@@ -1,0 +1,25 @@
+{
+  "name": "mmdconnect-mobile-upload",
+  "version": "1.0.0",
+  "description": "Mobile upload interface for MMDConnect healthcare document sharing",
+  "type": "module",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve . -l 3000"
+  },
+  "dependencies": {
+    "formidable": "^3.5.1"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  },
+  "keywords": [
+    "healthcare",
+    "mobile",
+    "file-upload",
+    "mmdconnect"
+  ],
+  "author": "MMDConnect",
+  "license": "MIT"
+}
