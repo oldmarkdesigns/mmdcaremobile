@@ -50,6 +50,8 @@ export default async function handler(req, res) {
         globalStateSize: Object.keys(transfers).length,
         storageFileExists: storageExists,
         storageFileContent: storageContent,
+        memoryFallback: global.__mmd_transfers_memory || {},
+        memoryFallbackSize: Object.keys(global.__mmd_transfers_memory || {}).length,
         timestamp: new Date().toISOString()
       });
     }
