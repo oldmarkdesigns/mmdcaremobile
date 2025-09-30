@@ -142,7 +142,19 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      // Store file metadata (simplified for serverless)
+      // Initialize global state if needed
+      if (!global.__mmd_transfers) {
+        global.__mmd_transfers = new Map();
+      }
+
+      // Get or create transfer
+      let transfer = global.__mmd_transfers.get(transferId);
+      if (!transfer) {
+        transfer = { status: 'open', files: [], createdAt: Date.now() };
+        global.__mmd_transfers.set(transferId, transfer);
+      }
+
+      // Store file metadata
       const meta = {
         name: file.originalFilename,
         size: file.size,
@@ -151,8 +163,13 @@ export default async function handler(req, res) {
         transferId: transferId
       };
       
+      // Add file to transfer
+      transfer.files.push(meta);
+      global.__mmd_transfers.set(transferId, transfer);
+      
       // Log the upload for debugging
       console.log('File uploaded:', meta);
+      console.log('Transfer now has', transfer.files.length, 'files');
 
       // Push SSE event to any subscribers on desktop
       try {

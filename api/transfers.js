@@ -11,9 +11,21 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'POST') {
+    // Initialize global state if needed
+    if (!global.__mmd_transfers) {
+      global.__mmd_transfers = new Map();
+    }
+
     // Generate a unique transfer ID
     const transferId = Math.random().toString(36).substring(2, 15) + 
                       Math.random().toString(36).substring(2, 15);
+    
+    // Create transfer record
+    global.__mmd_transfers.set(transferId, {
+      status: 'open',
+      files: [],
+      createdAt: Date.now()
+    });
     
     // Log transfer creation for debugging
     console.log('Transfer created:', transferId);

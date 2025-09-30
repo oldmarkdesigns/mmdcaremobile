@@ -32,8 +32,16 @@ if (req.method === 'POST') {
     // Log completion for debugging
     console.log('Transfer completed:', transferId);
 
-  // Mark transfer as completed in memory for GET requests
-  try { global.__mmd_completed.add(transferId); } catch {}
+    // Mark transfer as completed in memory for GET requests
+    try { global.__mmd_completed.add(transferId); } catch {}
+
+    // Also update transfer status in the transfers map
+    if (global.__mmd_transfers && global.__mmd_transfers.has(transferId)) {
+      const transfer = global.__mmd_transfers.get(transferId);
+      transfer.status = 'closed';
+      global.__mmd_transfers.set(transferId, transfer);
+      console.log('Updated transfer status to closed for:', transferId);
+    }
 
     res.status(204).end();
   } else {
