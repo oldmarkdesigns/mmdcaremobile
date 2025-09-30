@@ -62,19 +62,19 @@ if (req.method === 'POST') {
       const transfers = loadTransfers();
       console.log('Loaded transfers for completion:', Object.keys(transfers));
       
-      const transfer = transfers[transferId];
+      let transfer = transfers[transferId];
       console.log('Found transfer for completion:', transfer);
       
-      if (transfer) {
-        transfer.status = 'closed';
-        transfers[transferId] = transfer;
-        saveTransfers(transfers);
-        console.log('Updated transfer status to closed for:', transferId);
-        console.log('Final transfer object:', transfer);
-      } else {
-        console.log('Transfer not found for completion:', transferId);
-        console.log('Available transfers:', Object.keys(transfers));
+      if (!transfer) {
+        console.log('Transfer not found for completion, creating minimal record:', transferId);
+        transfer = { status: 'open', files: [], createdAt: Date.now() };
       }
+
+      transfer.status = 'closed';
+      transfers[transferId] = transfer;
+      saveTransfers(transfers);
+      console.log('Updated transfer status to closed for:', transferId);
+      console.log('Final transfer object:', transfer);
 
       console.log('Sending 204 response for completion');
       res.status(204).end();
