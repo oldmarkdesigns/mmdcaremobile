@@ -138,11 +138,9 @@ export default async function handler(req, res) {
       const form = formidable({
         maxFileSize: 100 * 1024 * 1024, // 100MB
         filter: ({ mimetype }) => {
+          // Accept all types for now to avoid client mime quirks (e.g., application/octet-stream)
           console.log('File mimetype:', mimetype);
-          const allowed = ['application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-          const isAllowed = allowed.includes(mimetype);
-          console.log('File allowed:', isAllowed);
-          return isAllowed;
+          return true;
         }
       });
 
@@ -191,7 +189,11 @@ export default async function handler(req, res) {
       console.log('File uploaded successfully:', meta);
       console.log('Transfer now has', transfer.files.length, 'files');
       console.log('Updated transfer object:', transfer);
-      console.log('Global state after upload:', Array.from(global.__mmd_transfers.keys()));
+      // Guard: global.__mmd_transfers may not exist anymore after switching to persistent storage
+      try {
+        const keys = global.__mmd_transfers ? Array.from(global.__mmd_transfers.keys()) : [];
+        console.log('Legacy in-memory keys (if any):', keys);
+      } catch {}
 
       // Push SSE event to any subscribers on desktop
       try {
@@ -217,7 +219,8 @@ export default async function handler(req, res) {
     } catch (error) {
       console.error('Upload error:', error);
       console.error('Error stack:', error.stack);
-      res.status(500).json({ error: 'Upload failed' });
+      // Return structured error to client
+      res.status(500).json({ error: 'Upload failed', message: error?.message || 'Unknown error' });
     }
   }
 }
