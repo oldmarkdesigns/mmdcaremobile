@@ -2,6 +2,7 @@
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
+import { loadTransfers, saveTransfers } from './storage.js';
 
 export const config = {
   api: {
@@ -157,17 +158,16 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      // Initialize global state if needed
-      if (!global.__mmd_transfers) {
-        global.__mmd_transfers = new Map();
-      }
+      // Load transfers from persistent storage
+      const transfers = loadTransfers();
+      console.log('Loaded transfers from storage for upload:', Object.keys(transfers));
 
       // Get or create transfer
-      let transfer = global.__mmd_transfers.get(transferId);
+      let transfer = transfers[transferId];
       if (!transfer) {
         console.log('Transfer not found during upload, creating new transfer for ID:', transferId);
         transfer = { status: 'open', files: [], createdAt: Date.now() };
-        global.__mmd_transfers.set(transferId, transfer);
+        transfers[transferId] = transfer;
         console.log('Created new transfer during upload for ID:', transferId);
       }
 
@@ -182,7 +182,10 @@ export default async function handler(req, res) {
       
       // Add file to transfer
       transfer.files.push(meta);
-      global.__mmd_transfers.set(transferId, transfer);
+      transfers[transferId] = transfer;
+      
+      // Save to persistent storage
+      saveTransfers(transfers);
       
       // Log the upload for debugging
       console.log('File uploaded successfully:', meta);

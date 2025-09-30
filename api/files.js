@@ -1,3 +1,5 @@
+import { loadTransfers, saveTransfers } from './storage.js';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,25 +20,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No transfer ID provided' });
     }
 
-    // Initialize global state if needed
-    if (!global.__mmd_transfers) {
-      global.__mmd_transfers = new Map();
-      console.log('Initialized global transfers map');
-    }
-
-    let transfer = global.__mmd_transfers.get(transferId);
+    // Load transfers from persistent storage
+    const transfers = loadTransfers();
+    console.log('Loaded transfers from storage:', Object.keys(transfers));
+    
+    let transfer = transfers[transferId];
     console.log('Found transfer:', transfer);
-    console.log('All transfers:', Array.from(global.__mmd_transfers.keys()));
     
     if (!transfer) {
       console.log('Transfer not found for ID:', transferId, '- creating new transfer record');
-      // Create a new transfer record if it doesn't exist (for serverless compatibility)
+      // Create a new transfer record if it doesn't exist
       transfer = {
         status: 'open',
         files: [],
         createdAt: Date.now()
       };
-      global.__mmd_transfers.set(transferId, transfer);
+      transfers[transferId] = transfer;
+      saveTransfers(transfers);
       console.log('Created new transfer record for ID:', transferId);
     }
 

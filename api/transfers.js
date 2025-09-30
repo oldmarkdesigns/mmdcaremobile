@@ -1,4 +1,6 @@
 // Vercel API route for creating transfer sessions
+import { loadTransfers, saveTransfers } from './storage.js';
+
 export default function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,21 +13,22 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'POST') {
-    // Initialize global state if needed
-    if (!global.__mmd_transfers) {
-      global.__mmd_transfers = new Map();
-    }
+    // Load existing transfers
+    const transfers = loadTransfers();
 
     // Generate a unique transfer ID
     const transferId = Math.random().toString(36).substring(2, 15) + 
                       Math.random().toString(36).substring(2, 15);
     
     // Create transfer record
-    global.__mmd_transfers.set(transferId, {
+    transfers[transferId] = {
       status: 'open',
       files: [],
       createdAt: Date.now()
-    });
+    };
+    
+    // Save to persistent storage
+    saveTransfers(transfers);
     
     // Log transfer creation for debugging
     console.log('Transfer created:', transferId);

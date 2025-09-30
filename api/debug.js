@@ -1,3 +1,5 @@
+import { loadTransfers } from './storage.js';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,29 +17,25 @@ export default async function handler(req, res) {
     console.log('=== DEBUG ENDPOINT ===');
     console.log('Requested transfer ID:', transferId);
     
-    // Initialize global state if needed
-    if (!global.__mmd_transfers) {
-      global.__mmd_transfers = new Map();
-      console.log('Initialized global transfers map in debug');
-    }
-    
-    console.log('All transfer IDs:', Array.from(global.__mmd_transfers.keys()));
-    console.log('Global state size:', global.__mmd_transfers.size);
+    // Load transfers from persistent storage
+    const transfers = loadTransfers();
+    console.log('All transfer IDs:', Object.keys(transfers));
+    console.log('Storage size:', Object.keys(transfers).length);
     
     if (transferId) {
-      const transfer = global.__mmd_transfers.get(transferId);
+      const transfer = transfers[transferId];
       console.log('Specific transfer:', transfer);
       
       res.status(200).json({
         transferId,
         transfer,
-        allTransfers: Array.from(global.__mmd_transfers.entries()),
-        globalStateSize: global.__mmd_transfers.size
+        allTransfers: Object.entries(transfers),
+        globalStateSize: Object.keys(transfers).length
       });
     } else {
       res.status(200).json({
-        allTransfers: Array.from(global.__mmd_transfers.entries()),
-        globalStateSize: global.__mmd_transfers.size
+        allTransfers: Object.entries(transfers),
+        globalStateSize: Object.keys(transfers).length
       });
     }
   } else {
