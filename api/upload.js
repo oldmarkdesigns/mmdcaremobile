@@ -150,8 +150,10 @@ export default async function handler(req, res) {
       // Get or create transfer
       let transfer = global.__mmd_transfers.get(transferId);
       if (!transfer) {
+        console.log('Transfer not found during upload, creating new transfer for ID:', transferId);
         transfer = { status: 'open', files: [], createdAt: Date.now() };
         global.__mmd_transfers.set(transferId, transfer);
+        console.log('Created new transfer during upload for ID:', transferId);
       }
 
       // Store file metadata

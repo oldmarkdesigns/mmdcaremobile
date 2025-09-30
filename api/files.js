@@ -24,13 +24,20 @@ export default async function handler(req, res) {
       console.log('Initialized global transfers map');
     }
 
-    const transfer = global.__mmd_transfers.get(transferId);
+    let transfer = global.__mmd_transfers.get(transferId);
     console.log('Found transfer:', transfer);
     console.log('All transfers:', Array.from(global.__mmd_transfers.keys()));
     
     if (!transfer) {
-      console.log('Transfer not found for ID:', transferId);
-      return res.status(404).json({ error: 'Transfer not found' });
+      console.log('Transfer not found for ID:', transferId, '- creating new transfer record');
+      // Create a new transfer record if it doesn't exist (for serverless compatibility)
+      transfer = {
+        status: 'open',
+        files: [],
+        createdAt: Date.now()
+      };
+      global.__mmd_transfers.set(transferId, transfer);
+      console.log('Created new transfer record for ID:', transferId);
     }
 
     const response = {
