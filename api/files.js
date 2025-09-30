@@ -12,6 +12,8 @@ export default async function handler(req, res) {
   if (req.method === 'GET') {
     const { transferId } = req.query;
     
+    console.log('Files API called with transferId:', transferId);
+    
     if (!transferId) {
       return res.status(400).json({ error: 'No transfer ID provided' });
     }
@@ -19,19 +21,26 @@ export default async function handler(req, res) {
     // Initialize global state if needed
     if (!global.__mmd_transfers) {
       global.__mmd_transfers = new Map();
+      console.log('Initialized global transfers map');
     }
 
     const transfer = global.__mmd_transfers.get(transferId);
+    console.log('Found transfer:', transfer);
+    console.log('All transfers:', Array.from(global.__mmd_transfers.keys()));
     
     if (!transfer) {
+      console.log('Transfer not found for ID:', transferId);
       return res.status(404).json({ error: 'Transfer not found' });
     }
 
-    res.status(200).json({
+    const response = {
       transferId,
       status: transfer.status,
       files: transfer.files || []
-    });
+    };
+    
+    console.log('Returning files response:', response);
+    res.status(200).json(response);
   } else {
     res.status(405).json({ error: 'Method not allowed' });
   }
