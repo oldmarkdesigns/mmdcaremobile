@@ -1,4 +1,5 @@
 import { loadTransfers } from './storage.js';
+import fs from 'fs';
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -33,9 +34,23 @@ export default async function handler(req, res) {
         globalStateSize: Object.keys(transfers).length
       });
     } else {
+      // Check if storage file exists
+      const storageExists = fs.existsSync('/tmp/transfers.json');
+      let storageContent = null;
+      if (storageExists) {
+        try {
+          storageContent = fs.readFileSync('/tmp/transfers.json', 'utf8');
+        } catch (e) {
+          storageContent = 'Error reading file: ' + e.message;
+        }
+      }
+      
       res.status(200).json({
         allTransfers: Object.entries(transfers),
-        globalStateSize: Object.keys(transfers).length
+        globalStateSize: Object.keys(transfers).length,
+        storageFileExists: storageExists,
+        storageFileContent: storageContent,
+        timestamp: new Date().toISOString()
       });
     }
   } else {
